@@ -1,0 +1,42 @@
+# =============================
+# Terraform
+# =============================
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Terraform plans / overrides
+*.tfplan
+*.plan
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Variable files (souvent sensibles)
+*.tfvars
+*.tfvars.json
+
+# CLI config (peut contenir des tokens)
+.terraformrc
+terraform.rc
+
+# =============================
+# Secrets / env files
+# =============================
+.env
+.env.*
+*.pem
+*.key
+
+# =============================
+# OS / Editor junk
+# =============================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
