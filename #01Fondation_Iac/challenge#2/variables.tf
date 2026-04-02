@@ -30,6 +30,6 @@ variable "az_count" {
 
 variable "subnet_newbits" {
   description = "Additional prefix bits to create subnets from VPC CIDR"
-  type = number
-  default = 8
+  type        = number
+  default     = 8
 }
