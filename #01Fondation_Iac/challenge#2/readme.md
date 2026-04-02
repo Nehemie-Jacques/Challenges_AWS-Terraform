@@ -1,29 +1,29 @@
-# Challenge #2 — VPC complet avec subnets publics et privés
+# Challenge #2 — Full VPC with Public and Private Subnets
 
-## Objectif
+## Objective
 
-Construire un réseau AWS isolé et réutilisable pour les prochains challenges :
+Build an isolated and reusable AWS network foundation for upcoming challenges:
 
-- 1 VPC custom (pas le VPC par défaut),
-- 2 subnets publics dans 2 AZ,
-- 2 subnets privés dans les mêmes 2 AZ,
+- 1 custom VPC (not the default VPC),
+- 2 public subnets across 2 AZs,
+- 2 private subnets across the same 2 AZs,
 - 1 Internet Gateway,
-- 1 route table publique + 1 route table privée,
-- associations des subnets aux bonnes route tables.
+- 1 public route table + 1 private route table,
+- route table associations to the correct subnets.
 
-## Ce qui a été fait
+## What was implemented
 
-### 1) Provider et backend
+### 1) Provider and backend
 
-- Provider AWS configuré dans `provider.tf` avec :
-	- `required_version = ">= 1.6.0"`
-	- provider `hashicorp/aws` en `~> 5.0`
-	- région variabilisée via `var.aws_region`.
-- Backend S3 configuré dans `backend.tf` avec verrouillage DynamoDB (`terraform-locks`).
+- AWS provider configured in `provider.tf` with:
+  - `required_version = ">= 1.6.0"`
+  - `hashicorp/aws` provider pinned to `~> 5.0`
+  - region externalized through `var.aws_region`.
+- S3 backend configured in `backend.tf` with DynamoDB locking (`terraform-locks`).
 
-### 2) Variables et paramétrage
+### 2) Variables and parametrization
 
-Dans `variables.tf`, les éléments suivants sont variabilisés :
+In `variables.tf`, the following values are parameterized:
 
 - `aws_region`
 - `project`
@@ -32,47 +32,44 @@ Dans `variables.tf`, les éléments suivants sont variabilisés :
 - `az_count`
 - `subnet_newbits`
 
-Ce paramétrage permet d’adapter rapidement le challenge à un autre environnement.
+This setup makes the challenge easy to adapt to other environments.
 
-### 3) Création réseau (dans `main.tf`)
+### 3) Network creation (in `main.tf`)
 
-- AZ récupérées dynamiquement via `data "aws_availability_zones" "available"`.
-- Sélection des AZ via `slice(...)` selon `az_count`.
-- Calcul des CIDR des subnets avec `cidrsubnet()` (pas de hardcoding).
-- VPC créé avec DNS activé (`enable_dns_hostnames` et `enable_dns_support`).
-- Subnets publics créés avec `map_public_ip_on_launch = true`.
-- Subnets privés créés avec `map_public_ip_on_launch = false`.
-- Internet Gateway attachée au VPC.
-- Route table publique avec route `0.0.0.0/0` vers l’IGW.
-- Route table privée sans route Internet.
-- Associations route tables ↔ subnets réalisées.
+- AZs retrieved dynamically through `data "aws_availability_zones" "available"`.
+- AZ selection handled with `slice(...)` based on `az_count`.
+- Subnet CIDRs computed with `cidrsubnet()` (no hardcoding).
+- VPC created with DNS enabled (`enable_dns_hostnames` and `enable_dns_support`).
+- Public subnets created with `map_public_ip_on_launch = true`.
+- Private subnets created with `map_public_ip_on_launch = false`.
+- Internet Gateway attached to the VPC.
+- Public route table with `0.0.0.0/0` route to IGW.
+- Private route table with no direct Internet route.
+- Route table ↔ subnet associations completed.
 
-## État des livrables
+## Deliverables status
 
-### ✅ Implémenté
+### ✅ Implemented
 
-- VPC custom + 4 subnets (2 publics / 2 privés) pilotés dynamiquement.
-- Routage public vers IGW et routage privé isolé.
+- Custom VPC + 4 subnets (2 public / 2 private) generated dynamically.
+- Public routing through IGW and isolated private routing.
 
-### 🟡 À finaliser
+### 🟡 To finalize
 
-- Ajouter les outputs demandés par le challenge :
-	- `vpc_id`
-	- `public_subnet_ids`
-	- `private_subnet_ids`
-- Corriger le format de la `key` backend (elle est bien ajoutée, mais la valeur actuelle provoque une erreur S3).
-	Recommandation : utiliser une clé simple comme `challenge-02/terraform.tfstate` (sans `../` ni `#`).
+- Ensure output values are populated in state (run `terraform apply` if infrastructure is not yet created in this state).
+- Keep backend key format clean and stable (`challenge-02/terraform.tfstate`).
 
-## Pourquoi la route table privée n’a pas de route IGW ?
+## Why does the private route table have no IGW route?
 
-Un subnet privé ne doit pas être directement exposé à Internet.
-Si des instances privées doivent sortir pour mises à jour, on ajoutera plus tard un **NAT Gateway** (dans un subnet public), puis une route `0.0.0.0/0` de la table privée vers ce NAT.
+A private subnet must not be directly exposed to the Internet.
+If private instances need outbound Internet access for updates, add a **NAT Gateway** (in a public subnet) and then a `0.0.0.0/0` route from the private route table to the NAT.
 
-## Commandes utiles
+## Useful commands
 
 ```bash
 terraform fmt -recursive
 terraform validate
 terraform plan
 terraform apply -auto-approve
+terraform output
 ```

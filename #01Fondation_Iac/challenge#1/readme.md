@@ -1,56 +1,56 @@
-# Challenge #1 — Bootstrap du State Terraform (S3 + DynamoDB)
+# Challenge #1 — Terraform State Bootstrap (S3 + DynamoDB)
 
-## Objectif
+## Objective
 
-Mettre en place un backend Terraform distant, sécurisé et partageable pour stocker le `terraform.tfstate` dans AWS.
+Set up a secure, shared, and remote Terraform backend to store `terraform.tfstate` in AWS.
 
-Ce challenge pose les bases d’un projet IaC propre :
+This challenge builds the foundation of a clean IaC workflow:
 
-- stockage du state dans **S3**,
-- verrouillage du state avec **DynamoDB**,
-- préparation à un travail en équipe (state centralisé et lock).
+- state storage in **S3**,
+- state locking with **DynamoDB**,
+- team-ready collaboration with centralized state and locking.
 
-## Ce qui a été fait
+## What was implemented
 
-### 1) Initialisation du projet Terraform
+### 1) Terraform project initialization
 
-- Provider AWS défini avec contrainte de version.
-- Région AWS externalisée via variable (`aws_region`).
+- AWS provider configured with version constraints.
+- AWS region externalized via variable (`aws_region`).
 
-### 2) Création du bucket S3 pour le state
+### 2) S3 bucket creation for state
 
-- Bucket dédié au state Terraform (`aws_s3_bucket`).
-- Versioning activé (`aws_s3_bucket_versioning`).
-- Chiffrement serveur AES-256 activé (`aws_s3_bucket_server_side_encryption_configuration`).
-- Accès public entièrement bloqué (`aws_s3_bucket_public_access_block`).
+- Dedicated Terraform state bucket (`aws_s3_bucket`).
+- Versioning enabled (`aws_s3_bucket_versioning`).
+- AES-256 server-side encryption enabled (`aws_s3_bucket_server_side_encryption_configuration`).
+- Public access fully blocked (`aws_s3_bucket_public_access_block`).
 
-### 3) Création de la table DynamoDB de lock
+### 3) DynamoDB lock table creation
 
-- Table DynamoDB créée (`aws_dynamodb_table`).
-- Mode `PAY_PER_REQUEST` pour rester simple et compatible Free Tier.
-- Clé de partition : `LockID` (type `S`) pour le verrouillage Terraform.
+- DynamoDB table created (`aws_dynamodb_table`).
+- `PAY_PER_REQUEST` billing mode to keep it simple and Free Tier-friendly.
+- Partition key: `LockID` (type `S`) for Terraform state locking.
 
-### 4) Préparation du backend distant
+### 4) Remote backend setup
 
-- Fichier `backend.tf` préparé avec un backend `s3`.
-- Paramètres attendus : `bucket`, `key`, `region`, `dynamodb_table`, `encrypt = true`.
+- `backend.tf` prepared with an `s3` backend.
+- Expected parameters: `bucket`, `key`, `region`, `dynamodb_table`, `encrypt = true`.
 
-### 5) Processus de bootstrap
+### 5) Bootstrap process
 
-Ordre d’exécution recommandé :
+Recommended execution order:
 
 1. `terraform init -backend=false`
-2. `terraform apply` (création du bucket + table)
-3. ajout/configuration de `backend.tf`
+2. `terraform apply` (create bucket + table)
+3. add/configure `backend.tf`
 4. `terraform init -reconfigure -migrate-state`
 
-## Livrables attendus
+## Expected deliverables
 
-- `terraform state list` fonctionne sans erreur.
-- Le state est stocké dans S3 (remote backend actif).
-- Le lock de state est assuré par DynamoDB.
+- `terraform state list` runs without errors.
+- State is stored in S3 (remote backend active).
+- State locking is handled by DynamoDB.
 
-## Remarques
+## Notes
 
-- Le nom du bucket S3 doit être **globalement unique** et en minuscules.
-- Les valeurs sensibles (identifiants AWS, variables privées) ne doivent jamais être commitées.
+- The S3 bucket name must be **globally unique** and lowercase.
+- Sensitive values (AWS credentials, private variables) must never be committed.
