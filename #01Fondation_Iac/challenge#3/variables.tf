@@ -4,46 +4,49 @@ variable "aws_region" {
   default     = "eu-west-3"
 }
 
-variable "bucket_name" {
-  description = "The name of the S3 bucket to create"
+variable "environment" {
+  description = "The environment for which to create resources"
   type        = string
-  default = "my-tf-test-bucket"
 
   validation {
-    condition = length(aws_s3_bucket.bucket) > 0 && length(aws_s3_bucket.bucket) <= 63
-    error_message = "Bucket name must be between 3 and 63 characters long"
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be one of : dev, staging, prod"
   }
 }
 
-variable "prod_tags" {
-  description = "Tags for production resources"
-  type        = map(string)
-  default = {
-    Name        = "My bucket"
-    Environment = "Prod"
+variable "name_prefix" {
+  description = "The prefix for the resource names"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9-]+$", var.name_prefix))
+    error_message = "Name prefix must contain only alphanumeric characters and hyphens"
   }
 }
 
-variable "staging_tags" {
-  description = "Tags for staging resources"
-  type        = map(string)
-  default = {
-    Name        = "My bucket"
-    Environment = "Staging"
+variable "bucket_name_override" {
+  description = "The override for the S3 bucket name"
+  type        = string
+  default     = null
+
+  validation {
+    condition = var.bucket_name_override == null || (
+      length(var.bucket_name_override) >= 3 &&
+      length(var.bucket_name_override) <= 63 &&
+      can(regex("^[a-z0-9.-]+$", var.bucket_name_override))
+    )
+    error_message = "bucket_name_override must be 3-63 chars and contain only lowercase letters, numbers, dots, or hyphens."
   }
 }
 
-variable "dev_tags" {
-  description = "Tags for development resources"
+variable "tags" {
+  description = "Default tags for resources"
   type        = map(string)
-  default = {
-    Name        = "My bucket"
-    Environment = "Dev"
-  }
+  default = {}
 }
 
 variable "db_password" {
-  description = "The password for the database"
+  description = "Dummy sensitive variable for practice"
   type        = string
   sensitive   = true
 }
