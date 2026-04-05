@@ -19,8 +19,12 @@ variable "name_prefix" {
   type        = string
 
   validation {
-    condition     = can(regex("^[a-zA-Z0-9-]+$", var.name_prefix))
-    error_message = "Name prefix must contain only alphanumeric characters and hyphens"
+    condition = (
+      length(var.name_prefix) >= 3 &&
+      length(var.name_prefix) <= 30 &&
+      can(regex("^[a-z0-9-]+$", var.name_prefix))
+    )
+    error_message = "name_prefix must be 3-30 chars and contain only lowercase letters, numbers, and hyphens."
   }
 }
 
@@ -42,7 +46,7 @@ variable "bucket_name_override" {
 variable "tags" {
   description = "Default tags for resources"
   type        = map(string)
-  default = {}
+  default     = {}
 }
 
 variable "db_password" {
