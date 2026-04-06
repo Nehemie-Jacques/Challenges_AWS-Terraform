@@ -9,6 +9,6 @@ output "bucket_name" {
 }
 
 output "url_web_site" {
-  description = ""
-  value = 
+  description = "The static website endpoint URL"
+  value = aws_s3_bucket_website_configuration.site.website_url
 }
