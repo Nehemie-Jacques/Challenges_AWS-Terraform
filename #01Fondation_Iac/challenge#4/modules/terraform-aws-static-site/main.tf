@@ -32,7 +32,7 @@ resource "aws_s3_bucket_website_configuration" "site" {
 }
 
 resource "aws_s3_bucket_policy" "site" {
-  count = var.bucket_policy != null ? 1 : 0
+  count  = var.bucket_policy != null ? 1 : 0
   bucket = aws_s3_bucket.site.id
   policy = var.bucket_policy
 
