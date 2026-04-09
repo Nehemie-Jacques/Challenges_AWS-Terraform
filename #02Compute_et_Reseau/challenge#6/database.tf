@@ -4,7 +4,7 @@ resource "aws_db_subnet_group" "main" {
 }
 
 resource "aws_db_instance" "main" {
- identifier             = "${var.project}-${var.environment}-db"
+  identifier             = "${var.project}-${var.environment}-db"
   allocated_storage      = 20
   engine                 = "mysql"
   engine_version         = "8.0"
