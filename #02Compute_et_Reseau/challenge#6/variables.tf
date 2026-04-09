@@ -69,3 +69,15 @@ variable "name_asg" {
   type        = string
   default     = "app-auto-scaling-group"
 }
+
+variable "db_password" {
+  description = "Database administrator password"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_name" {
+  description = "Name of the initial database"
+  type        = string
+  default     = "myappdb"
+}

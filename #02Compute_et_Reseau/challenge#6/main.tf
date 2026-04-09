@@ -170,16 +170,16 @@ resource "aws_launch_template" "app_lt" {
   }
 }
 
-resource "aws_autoscaling_group" "app_sg" { 
-  name = var.name_asg
+resource "aws_autoscaling_group" "app_sg" {
+  name                = var.name_asg
   vpc_zone_identifier = values(aws_subnet.public)
 
-  min_size = abs(var.az_count)
-  max_size = abs(var.az_count) * 2
-  desired_capacity = abs(var.az_count) 
+  min_size         = abs(var.az_count)
+  max_size         = abs(var.az_count) * 2
+  desired_capacity = abs(var.az_count)
 
   launch_template {
-    id = aws_launch_template.app_lt
+    id      = aws_launch_template.app_lt
     version = "$latest"
   }
 
