@@ -28,13 +28,13 @@ resource "aws_launch_template" "app_lt" {
   }
 }
 
-resource "aws_autoscaling_group" "app_sg" { 
+resource "aws_autoscaling_group" "app_sg" {
   name                = var.name_asg
   vpc_zone_identifier = [for s in aws_subnet.private : s.id] # Must be private subnets
 
   min_size         = var.az_count
   max_size         = var.az_count * 2
-  desired_capacity = var.az_count 
+  desired_capacity = var.az_count
 
   target_group_arns = [aws_lb_target_group.app.arn]
   health_check_type = "ELB"
