@@ -1,9 +1,9 @@
 locals {
-  services = ["ssm", "ssmmessage", "ec2messages"]
+  services = ["ssm", "ssmmessages", "ec2messages"]
 }
 
 resource "aws_vpc_endpoint" "ssm_endpoints" {
-  for_each = toset(locals.services)
+  for_each = toset(local.services)
 
   vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${var.aws_region}.${each.value}"

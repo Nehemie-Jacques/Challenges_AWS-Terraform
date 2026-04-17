@@ -49,7 +49,7 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_security_group" "ec2_sg" {
+resource "aws_security_group" "ssm_sg" {
   name        = "${var.project}-${var.environment}-ec2-sg"
   description = "Allow outbound HTTPS for SSM"
   vpc_id      = aws_vpc.main.id

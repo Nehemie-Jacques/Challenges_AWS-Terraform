@@ -63,8 +63,3 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
-
-variable "var.private_subnets_ids" {
-  description = "The IDs of the private subnets"
-  type        = list(string)
-}
