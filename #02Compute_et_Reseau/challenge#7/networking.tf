@@ -55,19 +55,6 @@ resource "aws_internet_gateway" "gw" {
   }
 }
 
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.gw.id
-  }
-
-  tags = {
-    Name = "${var.project}-${var.environment}-public-route-table"
-  }
-}
-
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
@@ -76,14 +63,25 @@ resource "aws_route_table" "private" {
   }
 }
 
-resource "aws_route_table_association" "public" {
-  for_each       = aws_subnet.public
-  subnet_id      = each.value.id
-  route_table_id = aws_route_table.public.id
-}
-
 resource "aws_route_table_association" "private" {
   for_each       = aws_subnet.private
   subnet_id      = each.value.id
   route_table_id = aws_route_table.private.id
+}
+
+resource "aws_security_group" "ssm_sg" {
+  name   = var.ssm.sg
+  vpc_id = aws_vpc.main.id
+
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS outbound pour SSM"
+  }
+
+  tags = {
+    Name = "allow-ssm-outbound"
+  }
 }

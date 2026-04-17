@@ -42,12 +42,30 @@ variable "aws_region" {
 
 variable "ec2_ssm_role" {
   description = "The name of the IAM role for EC2 SSM"
-  type = string
-  default = "ec2_ssm_role"
+  type        = string
+  default     = "ec2_ssm_role"
 }
 
 variable "ec2_ssm_profile" {
   description = "The name of the IAM instance profile for EC2 SSM"
-  type = string
-  default = "ec2_ssm_profile"
+  type        = string
+  default     = "ec2_ssm_profile"
+}
+
+variable "ssm.sg" {
+  description = "The name of the security group for SSM : allow the egress traffic to SSM"
+  type        = string
+  default     = "ssm-sg"
+}
+
+variable "ami_id" {
+  description = "The AMI ID for the EC2 instances"
+  type        = string
+  default     = "ami-0c7191dc6b3e08b56"
+}
+
+variable "instance_type" {
+  description = "The instance type for the EC2 instances"
+  type        = string
+  default     = "t3.micro"
 }
