@@ -5,32 +5,20 @@ data "aws_availability_zones" "available" {
 locals {
   selected_azs = slice(data.aws_availability_zones.available.names, 0, var.az_count)
 
-  common_tags = {
-    Project     = var.project
-    Environment = var.environment
-    ManagedBy   = "Terraform"
-  }
-
-  public_subnets = {
-    for i, az in local.selected_azs :
-    az => cidrsubnet(var.vpc_cidr_block, var.subnet_newbits, i)
-  }
-
   private_subnets = {
     for i, az in local.selected_azs :
     az => cidrsubnet(var.vpc_cidr_block, var.subnet_newbits, i + var.az_count)
   }
 }
 
-
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = merge(local.common_tags, {
+  tags = {
     name = "${var.project}-${var.environment}-vpc"
-  })
+  }
 }
 
 resource "aws_subnet" "private" {
@@ -41,17 +29,9 @@ resource "aws_subnet" "private" {
   availability_zone       = each.key
   map_public_ip_on_launch = false
 
-  tags = merge(local.common_tags, {
+  tags = {
     name = "${var.project}-${var.environment}-private-subnet-${each.key}"
     Tier = "Private"
-  })
-}
-
-resource "aws_internet_gateway" "gw" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "${var.project}-${var.environment}-igw"
   }
 }
 
@@ -69,19 +49,28 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_security_group" "ssm_sg" {
-  name   = var.ssm.sg
-  vpc_id = aws_vpc.main.id
+resource "aws_security_group" "ec2_sg" {
+  name        = "${var.project}-${var.environment}-ec2-sg"
+  description = "Allow outbound HTTPS for SSM"
+  vpc_id      = aws_vpc.main.id
 
   egress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS outbound pour SSM"
   }
+}
 
-  tags = {
-    Name = "allow-ssm-outbound"
+resource "aws_security_group" "ec2_sg_ingress" {
+  name        = "${var.project}-${var.environment}-ec2-sg-ingress"
+  description = "Allow inbound HTTPS from vpc for SSM Endpoints"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.main.cidr_block]
   }
 }

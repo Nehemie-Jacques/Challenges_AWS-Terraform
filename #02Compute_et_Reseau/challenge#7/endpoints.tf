@@ -10,6 +10,6 @@ resource "aws_vpc_endpoint" "ssm_endpoints" {
   vpc_endpoint_type = "Interface"
 
   security_group_ids  = [aws_security_group.ssm_sg.id]
-  subnet_ids          = var.private_subnets_ids
+  subnet_ids          = [for s in aws_subnet.private : s.id]
   private_dns_enabled = true
 }

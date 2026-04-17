@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project" {
   description = "The project name"
   type        = string
-  default     = "challenge2"
+  default     = "ch07-bastion"
 }
 
 variable "environment" {
@@ -34,12 +34,6 @@ variable "subnet_newbits" {
   default     = 8
 }
 
-variable "aws_region" {
-  description = "The AWS region to deploy resources"
-  type        = string
-  default     = "eu-west-3"
-}
-
 variable "ec2_ssm_role" {
   description = "The name of the IAM role for EC2 SSM"
   type        = string
@@ -52,7 +46,7 @@ variable "ec2_ssm_profile" {
   default     = "ec2_ssm_profile"
 }
 
-variable "ssm.sg" {
+variable "ssm_sg_name" {
   description = "The name of the security group for SSM : allow the egress traffic to SSM"
   type        = string
   default     = "ssm-sg"
@@ -68,4 +62,9 @@ variable "instance_type" {
   description = "The instance type for the EC2 instances"
   type        = string
   default     = "t3.micro"
+}
+
+variable "var.private_subnets_ids" {
+  description = "The IDs of the private subnets"
+  type        = list(string)
 }

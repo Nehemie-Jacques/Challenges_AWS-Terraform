@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ec2_ssm_role" {
-  name = var.ec2_ssm_role
+  name = "${var.project}-${var.environment}-ec2_ssm_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -7,17 +7,12 @@ resource "aws_iam_role" "ec2_ssm_role" {
       {
         Action = "sts:AssumeRole"
         Effect = "Allow"
-        Sid    = ""
         Principal = {
           Service = "ec2.amazonaws.com"
         }
       },
     ]
   })
-
-  tags = {
-    tag-key = "tag-value"
-  }
 }
 
 resource "aws_iam_role_policy_attachment" "ssm_policy_attach" {
