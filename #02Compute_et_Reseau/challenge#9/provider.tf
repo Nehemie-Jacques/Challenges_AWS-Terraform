@@ -14,6 +14,6 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias = "east"
+  alias  = "east"
   region = var.aws_region_east
 }

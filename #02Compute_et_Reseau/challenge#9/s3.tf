@@ -1,15 +1,8 @@
 resource "aws_s3_bucket" "site" {
   bucket = var.bucket_name
-  tags   = var.tags
 }
 
-resource "aws_s3_bucket_versioning" "site" {
-  bucket = aws_s3_bucket.site.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
+# Configuration de l'accès public au bucket S3 : Bloquer l'accès public
 resource "aws_s3_bucket_public_access_block" "site" {
   bucket = aws_s3_bucket.site.id
 
@@ -19,45 +12,35 @@ resource "aws_s3_bucket_public_access_block" "site" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_website_configuration" "site" {
-  bucket = aws_s3_bucket.site.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "error.html"
-  }
+# Dépôt de l'objet index.html dans le bucket S3
+resource "aws_s3_object" "index" {
+  bucket       = aws_s3_bucket.site.id
+  key          = "index.html"
+  source       = file("${path.module}/index.html")
+  content_type = "text/html"
 }
 
-resource "aws_s3_bucket_policy" "site" {
-  count  = var.bucket_policy != null ? 1 : 0
-  bucket = aws_s3_bucket.site.id
-  policy = var.bucket_policy
-}
-
+# Politique IAM pour autoriser l'accès depuis CloudFront via OAC
 data "aws_iam_policy_document" "allow_cloudfront" {
   statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.site.arn}/*"]
+
     principals {
       type        = "Service"
       identifiers = ["cloudfront.amazonaws.com"]
     }
 
-    actions   = ["s3:GetObject"]
-
-    resources = ["${aws_s3_bucket.site.arn}/*"]
-
     condition {
-      test = "StringEquals"
+      test     = "StringEquals"
       variable = "aws:SourceArn"
-      value = aws_cloudfront_distribution.site.arn
+      values   = [aws_cloudfront_distribution.s3_distribution.arn]
     }
   }
 }
 
 resource "aws_s3_bucket_policy" "allow_access_from_cloudfront" {
-  bucket = aws_s3_bucket.site.id
-  policy = data.aws_iam_policy_document.allow_cloudfront.json
-  depends_on = [ aws_cloudfront_distribution.s3_distribution ]
+  bucket     = aws_s3_bucket.site.id
+  policy     = data.aws_iam_policy_document.allow_cloudfront.json
+  depends_on = [aws_cloudfront_distribution.s3_distribution]
 }
