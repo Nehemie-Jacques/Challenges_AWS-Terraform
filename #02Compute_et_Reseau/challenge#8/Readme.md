@@ -56,10 +56,10 @@ terraform destroy -auto-approve
 ```
 ---
 
-## Question de réflexion
+## Thought-provoking Question
 
-### 1. Pourquoi place-t-on le NAT Gateway dans un subnet public ?
-Un NAT (Network Address Translation) fait le pont entre un réseau privé et l'Internet. S'il était placé dans un sous-réseau privé, il n'aurait pas de route vers l'Internet Gateway (IGW) pour sortir. L'instance NAT doit avoir une IP publique (EIP) et une route directe vers la sortie.
+### 1. Why is the NAT Gateway placed in a public subnet?
+A NAT (Network Address Translation) bridges a private network to the internet. If it were placed in a private subnet, it wouldn't have a route to the Internet Gateway (IGW) to exit. The NAT instance must have a public IP address (EIP) and a direct route to the exit point.
 
-### 2. Quel est l'impact financier de enable_nat_ha
-En production, la NAT Gateway est souvent l'un des postes de dépenses les plus élevés dans la section réseau, principalement parce qu'elle est facturée 24h/24.
+### 2. What is the financial impact of `enable_nat_ha`?
+In production, the NAT Gateway is often one of the highest expenses in the networking section, primarily because it is billed 24/7.
