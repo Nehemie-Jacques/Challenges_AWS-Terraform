@@ -15,3 +15,8 @@ variable "vpc_cidr_block-tools" {
   type        = string
   default     = "10.1.0.0/16"
 }
+
+variable "instance_type" {
+  type    = string
+  default = "t3.micro"
+}
