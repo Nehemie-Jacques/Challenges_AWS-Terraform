@@ -19,7 +19,7 @@ resource "aws_internet_gateway" "igw_tools" {
 
 resource "aws_route_table" "rt_tools" {
   vpc_id = aws_vpc.vpc_tools.id
-  route = {
+  route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw_tools.id
   }
@@ -31,7 +31,7 @@ resource "aws_route_table_association" "rta_tools" {
   route_table_id = aws_route_table.rt_tools.id
 }
 
-resource "aws_security_group" "allow_icmp_cross_vpc" {
+resource "aws_security_group" "allow_icmp_cross_vpc_tools" {
   name        = "allow_icmp_from_other_vpc"
   description = "Autorise le trafic ICMP entrant depuis le VPC distant"
   vpc_id      = aws_vpc.vpc_tools.id
@@ -56,10 +56,10 @@ resource "aws_security_group" "allow_icmp_cross_vpc" {
 }
 
 resource "aws_instance" "tools_instance" {
-  ami                    = "data.aws_ami.amazon_linux_2.id"
+  ami                    = data.aws_ami.amazon_linux_2.id
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet_tools.id
-  vpc_security_group_ids = [aws_security_group.allow_icmp_cross_vpc.id]
+  vpc_security_group_ids = [aws_security_group.allow_icmp_cross_vpc_tools.id]
   iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
   tags                   = { Name = "Tools-Instance" }
 }

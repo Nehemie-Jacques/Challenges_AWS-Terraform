@@ -19,7 +19,7 @@ resource "aws_internet_gateway" "igw_app" {
 
 resource "aws_route_table" "rt_app" {
   vpc_id = aws_vpc.vpc_app.id
-  route = {
+  route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw_app.id
   }
@@ -31,7 +31,7 @@ resource "aws_route_table_association" "rta_app" {
   route_table_id = aws_route_table.rt_app.id
 }
 
-resource "aws_security_group" "allow_icmp_cross_vpc" {
+resource "aws_security_group" "allow_icmp_cross_vpc_app" {
   name        = "allow_icmp_from_other_vpc"
   description = "Autorise le trafic ICMP entrant depuis le VPC tools"
   vpc_id      = aws_vpc.vpc_app.id
@@ -56,10 +56,10 @@ resource "aws_security_group" "allow_icmp_cross_vpc" {
 }
 
 resource "aws_instance" "app_instance" {
-  ami                    = "data.aws_ami.amazon_linux_2.id"
+  ami                    = data.aws_ami.amazon_linux_2.id
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.subnet_app.id
-  vpc_security_group_ids = [aws_security_group.allow_icmp_cross_vpc.id]
+  vpc_security_group_ids = [aws_security_group.allow_icmp_cross_vpc_app.id]
   iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
   tags                   = { Name = "App-Instance" }
 }
