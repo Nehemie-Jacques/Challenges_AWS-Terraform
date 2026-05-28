@@ -1,38 +1,93 @@
 resource "aws_api_gateway_rest_api" "crud_api" {
-  name = "items-crud-api"
+  name        = "items-crud-api"
   description = "API REST for the items CRUD on DynamoDB"
 }
 
 resource "aws_api_gateway_resource" "items_resource" {
   rest_api_id = aws_api_gateway_rest_api.crud_api.id
-  parent_id = aws_api_gateway_rest_api.crud_api.root_resource_id
-  path_part = "items"
+  parent_id   = aws_api_gateway_rest_api.crud_api.root_resource_id
+  path_part   = "items"
 }
 
-resource "aws_api_gateway_method" "items_method" {
-  for_each = toset(["GET", "POST", "PUT", "DELETE"])
+resource "aws_api_gateway_resource" "item_resource" {
   rest_api_id = aws_api_gateway_rest_api.crud_api.id
-  resource_id = aws_api_gateway_resource.items_resource.id
-  http_method = each.value
-  authorization = "NONE"
+  parent_id   = aws_api_gateway_resource.items_resource.id
+  path_part   = "{id}"
+}
+
+resource "aws_api_gateway_method" "items_get" {
+  rest_api_id      = aws_api_gateway_rest_api.crud_api.id
+  resource_id      = aws_api_gateway_resource.items_resource.id
+  http_method      = "GET"
+  authorization    = "NONE"
   api_key_required = true
 }
 
-resource "aws_api_gateway_integration" "lambda_integration" {
-  for_each = aws_api_gateway_method.items_method
-  rest_api_id = aws_api_gateway_rest_api.crud_api.id
-  resource_id = aws_api_gateway_resource.items_resource.id
-  http_method = each.value
+resource "aws_api_gateway_method" "items_post" {
+  rest_api_id      = aws_api_gateway_rest_api.crud_api.id
+  resource_id      = aws_api_gateway_resource.items_resource.id
+  http_method      = "POST"
+  authorization    = "NONE"
+  api_key_required = true
+}
+
+resource "aws_api_gateway_method" "item_get" {
+  rest_api_id      = aws_api_gateway_rest_api.crud_api.id
+  resource_id      = aws_api_gateway_resource.item_resource.id
+  http_method      = "GET"
+  authorization    = "NONE"
+  api_key_required = true
+}
+
+resource "aws_api_gateway_method" "item_delete" {
+  rest_api_id      = aws_api_gateway_rest_api.crud_api.id
+  resource_id      = aws_api_gateway_resource.item_resource.id
+  http_method      = "DELETE"
+  authorization    = "NONE"
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "items_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.crud_api.id
+  resource_id             = aws_api_gateway_resource.items_resource.id
+  http_method             = aws_api_gateway_method.items_get.http_method
   integration_http_method = "POST"
-  type = "AWS_PROXY"
-  uri = aws_lambda_function.items_lambda.invoke_arn
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.crud_lambda.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "items_post_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.crud_api.id
+  resource_id             = aws_api_gateway_resource.items_resource.id
+  http_method             = aws_api_gateway_method.items_post.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.crud_lambda.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "item_get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.crud_api.id
+  resource_id             = aws_api_gateway_resource.item_resource.id
+  http_method             = aws_api_gateway_method.item_get.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.crud_lambda.invoke_arn
+}
+
+resource "aws_api_gateway_integration" "item_delete_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.crud_api.id
+  resource_id             = aws_api_gateway_resource.item_resource.id
+  http_method             = aws_api_gateway_method.item_delete.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.crud_lambda.invoke_arn
 }
 
 resource "aws_lambda_permission" "apigw_lambda" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.crud_lambda.function_name
-  principal     = "://amazonaws.com"
+  principal     = "apigateway.amazonaws.com"
 
   # Restreint l'invocation à cette API Gateway spécifique pour plus de sécurité
   source_arn = "${aws_api_gateway_rest_api.crud_api.execution_arn}/*/*"
@@ -46,8 +101,15 @@ resource "aws_api_gateway_deployment" "crud_deployment" {
     # Force le redéploiement si les méthodes, les intégrations ou les ressources changent
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.items_resource.id,
-      aws_api_gateway_method.items_methods,
-      aws_api_gateway_integration.lambda_integrations,
+      aws_api_gateway_resource.item_resource.id,
+      aws_api_gateway_method.items_get.id,
+      aws_api_gateway_method.items_post.id,
+      aws_api_gateway_method.item_get.id,
+      aws_api_gateway_method.item_delete.id,
+      aws_api_gateway_integration.items_get_integration.id,
+      aws_api_gateway_integration.items_post_integration.id,
+      aws_api_gateway_integration.item_get_integration.id,
+      aws_api_gateway_integration.item_delete_integration.id,
     ]))
   }
 
@@ -55,6 +117,13 @@ resource "aws_api_gateway_deployment" "crud_deployment" {
   lifecycle {
     create_before_destroy = true
   }
+
+  depends_on = [
+    aws_api_gateway_integration.items_get_integration,
+    aws_api_gateway_integration.items_post_integration,
+    aws_api_gateway_integration.item_get_integration,
+    aws_api_gateway_integration.item_delete_integration,
+  ]
 }
 
 # 2. Création du Stage "dev"

@@ -4,7 +4,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 # Récupération sécurisée du nom de la table via la variable d'environnement
-TABLE_NAME = os.environ.get("DYNAMODB_TABLE")
+TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME")
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(TABLE_NAME) if TABLE_NAME else None
 
@@ -22,7 +22,7 @@ def build_response(status_code, body):
 def lambda_handler(event, context):
     # Vérification initiale de la configuration
     if not table:
-        return build_response(500, {"error": "Configuration manquante : variable DYNAMODB_TABLE introuvable."})
+        return build_response(500, {"error": "Configuration manquante : variable DYNAMODB_TABLE_NAME introuvable."})
 
     # Routage basé sur la méthode HTTP
     http_method = event.get("httpMethod")

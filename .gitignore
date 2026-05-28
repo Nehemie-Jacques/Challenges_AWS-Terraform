@@ -15,6 +15,10 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
+# Local build artifacts (ex: archive_file output)
+tmp/
+**/tmp/
+
 # Variable files (souvent sensibles)
 *.tfvars
 *.tfvars.json
